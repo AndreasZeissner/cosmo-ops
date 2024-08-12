@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.8.3](https://github.com/AndreasZeissner/cosmo-ops/compare/helm-cosmo@0.8.2...helm-cosmo@0.8.3) (2024-08-12)
+
+
+### Bug Fixes
+
+* add test ([c910125](https://github.com/AndreasZeissner/cosmo-ops/commit/c910125d7a1d75546192a817d4a1ed075b0fd932))
+* Something ([7c25073](https://github.com/AndreasZeissner/cosmo-ops/commit/7c25073c6bafff441e9147f24267a80d063924f7))
+* something in the controlplane ([e627349](https://github.com/AndreasZeissner/cosmo-ops/commit/e62734909ad4b57543bc72d855d9c8ef73bb096e))
+* stgh ([4507218](https://github.com/AndreasZeissner/cosmo-ops/commit/4507218bcbdfed9932adfcd94594639c0b4c67f8))
+* the bas ([8df8a65](https://github.com/AndreasZeissner/cosmo-ops/commit/8df8a65b08a38a24fb3384b6ef34e83042e5a050))
+
 ## [0.8.2](https://github.com/AndreasZeissner/cosmo-ops/compare/helm-cosmo@0.8.1...helm-cosmo@0.8.2) (2024-08-12)
 
 
