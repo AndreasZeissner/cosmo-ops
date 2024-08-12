@@ -1,8 +1,8 @@
 name: Helm Deployment
 on:
   pull_request:
-    branches:
-      - "!release-please--**"
+    branches-ignore:
+      - "release-please--**"
     paths:
       - "helm/**/*"
       - ".github/workflows/helm-deployment.yaml"
@@ -15,7 +15,6 @@ env:
   CI: true
 
 jobs:
-
   build_test:
     runs-on: ubuntu-latest
     timeout-minutes: 8

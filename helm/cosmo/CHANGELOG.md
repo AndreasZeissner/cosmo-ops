@@ -1,5 +1,47 @@
 # Changelog
 
+## [0.8.7](https://github.com/AndreasZeissner/cosmo-ops/compare/helm-cosmo@0.8.6...helm-cosmo@0.8.7) (2024-08-12)
+
+
+### Bug Fixes
+
+* another feature ([edbfe84](https://github.com/AndreasZeissner/cosmo-ops/commit/edbfe84c223b0b19662a3f35be14142306d1e910))
+* test ([57e3b6d](https://github.com/AndreasZeissner/cosmo-ops/commit/57e3b6d445bcdda66160b32e4dda4da408bee6d9))
+
+## [0.8.6](https://github.com/AndreasZeissner/cosmo-ops/compare/helm-cosmo@0.8.5...helm-cosmo@0.8.6) (2024-08-12)
+
+
+### Bug Fixes
+
+* foo ([df2a115](https://github.com/AndreasZeissner/cosmo-ops/commit/df2a115b89f71db74cdb57378aa4439b52fa817e))
+
+## [0.8.5](https://github.com/AndreasZeissner/cosmo-ops/compare/helm-cosmo@0.8.4...helm-cosmo@0.8.5) (2024-08-12)
+
+
+### Bug Fixes
+
+* something ([2851948](https://github.com/AndreasZeissner/cosmo-ops/commit/285194851ee62eeec09133debf1f857f2f69cfb1))
+* something ([bf0d652](https://github.com/AndreasZeissner/cosmo-ops/commit/bf0d65280af52fa46c0c7eadbd16ca771734bcb4))
+
+## [0.8.4](https://github.com/AndreasZeissner/cosmo-ops/compare/helm-cosmo@0.8.3...helm-cosmo@0.8.4) (2024-08-12)
+
+
+### Bug Fixes
+
+* some trigger ([e9d5eaa](https://github.com/AndreasZeissner/cosmo-ops/commit/e9d5eaa2cbb9ee0dc0379aab2f167d9f072c9105))
+* something in the helm charts ([0ee3f3b](https://github.com/AndreasZeissner/cosmo-ops/commit/0ee3f3b68726a5fdd737c7006141533a48f8ca2f))
+
+## [0.8.3](https://github.com/AndreasZeissner/cosmo-ops/compare/helm-cosmo@0.8.2...helm-cosmo@0.8.3) (2024-08-12)
+
+
+### Bug Fixes
+
+* add test ([c910125](https://github.com/AndreasZeissner/cosmo-ops/commit/c910125d7a1d75546192a817d4a1ed075b0fd932))
+* Something ([7c25073](https://github.com/AndreasZeissner/cosmo-ops/commit/7c25073c6bafff441e9147f24267a80d063924f7))
+* something in the controlplane ([e627349](https://github.com/AndreasZeissner/cosmo-ops/commit/e62734909ad4b57543bc72d855d9c8ef73bb096e))
+* stgh ([4507218](https://github.com/AndreasZeissner/cosmo-ops/commit/4507218bcbdfed9932adfcd94594639c0b4c67f8))
+* the bas ([8df8a65](https://github.com/AndreasZeissner/cosmo-ops/commit/8df8a65b08a38a24fb3384b6ef34e83042e5a050))
+
 ## [0.8.2](https://github.com/AndreasZeissner/cosmo-ops/compare/helm-cosmo@0.8.1...helm-cosmo@0.8.2) (2024-08-12)
 
 

@@ -114,4 +114,7 @@ spec:
               value: "{{ .Values.jobs.deleteUser.id }}"
           args:
             - "/app/dist/bin/delete-user.js"
-{{- end }}
+{{- end }}#TEST
+#TEST
+#TEST
+#TEST
