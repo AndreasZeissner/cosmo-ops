@@ -143,3 +143,6 @@ spec:
           args:
             - "/app/dist/bin/reactivate-org.js"
 {{- end }}
+
+
+# NOTES
