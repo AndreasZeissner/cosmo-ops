@@ -41,3 +41,5 @@ data:
   prometheusPort: "{{ .Values.configuration.prometheus.port }}"
   prometheusPath: "{{ .Values.configuration.prometheus.path }}"
   {{ end }}
+
+# asasdj
