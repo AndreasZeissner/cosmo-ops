@@ -1,7 +1,6 @@
 ---
-name: helm-release-docs-update
+name: Helm Release update Docs
 run-name: helm-release-docs-update
-
 
 on:
   workflow_dispatch:
@@ -15,19 +14,20 @@ on:
       - reopened
       - synchronize
       - opened
-
-permissions:
-  contents: write
+      - edited
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: write
+
 env:
   CI: true
 
 jobs:
-  update-docs:
+  build_test:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     # do not run for other prs than the release please prs
@@ -41,7 +41,7 @@ jobs:
 
       - uses: ./.github/actions/go
 
-      - name: install tools
+      - name: Install tools
         run: go install github.com/norwoodj/helm-docs/cmd/helm-docs@v1.11.3
 
       - name: Generate Helm docs
