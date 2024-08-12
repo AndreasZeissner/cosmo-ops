@@ -116,3 +116,4 @@ spec:
             - "/app/dist/bin/delete-user.js"
 {{- end }}#TEST
 #TEST
+#TEST
