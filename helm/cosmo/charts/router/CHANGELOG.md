@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.7.8](https://github.com/AndreasZeissner/cosmo-ops/compare/helm-cosmo-router@0.7.7...helm-cosmo-router@0.7.8) (2024-08-12)
+
+
+### Bug Fixes
+
+* test ([2f04683](https://github.com/AndreasZeissner/cosmo-ops/commit/2f04683158d7fbae7ec08d2829e78e9eaeb94429))
+* test ([3271c4c](https://github.com/AndreasZeissner/cosmo-ops/commit/3271c4cc86d849bfabe9f877334e606a4955f5d8))
+* test ([17bcb1b](https://github.com/AndreasZeissner/cosmo-ops/commit/17bcb1bb55e268ccc09498a5feb63bbdbab6c6f9))
+* test ([289aee0](https://github.com/AndreasZeissner/cosmo-ops/commit/289aee02a5b54be078c6aa77183a402571dcaef8))
+* test ([bd3a258](https://github.com/AndreasZeissner/cosmo-ops/commit/bd3a2584547ba6834eb55374a044701104b0da63))
+* test ([48485e2](https://github.com/AndreasZeissner/cosmo-ops/commit/48485e20e234c717c128f9a1e533f97165a9105d))
+
 ## [0.7.7](https://github.com/AndreasZeissner/cosmo-ops/compare/helm-cosmo-router@0.7.6...helm-cosmo-router@0.7.7) (2024-08-12)
 
 
