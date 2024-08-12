@@ -11,11 +11,11 @@ delete:
 
 publish-cosmo-chart:
 	helm package cosmo --version $(shell yq '.version' ./cosmo/Chart.yaml)
-	helm push cosmo-$(shell yq '.version' ./cosmo/Chart.yaml).tgz oci://ghcr.io/wundergraph/cosmo/helm-charts
+	helm push cosmo-$(shell yq '.version' ./cosmo/Chart.yaml).tgz oci://ghcr.io/wundergraph/cosmo-ops/helm-charts
 
 publish-router-chart:
 	cd cosmo/charts/ && helm package router --version $(shell yq '.version' ./cosmo/charts/router/Chart.yaml)
-	cd cosmo/charts/ && helm push router-$(shell yq '.version' ./cosmo/charts/router/Chart.yaml).tgz oci://ghcr.io/wundergraph/cosmo/helm-charts
+	cd cosmo/charts/ && helm push router-$(shell yq '.version' ./cosmo/charts/router/Chart.yaml).tgz oci://ghcr.io/wundergraph/cosmo-ops/helm-charts
 
 # Required to verify charts on artifacthub.io
 upload-artifacthub-manifest:
