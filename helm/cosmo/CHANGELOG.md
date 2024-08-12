@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.8.4](https://github.com/AndreasZeissner/cosmo-ops/compare/helm-cosmo@0.8.3...helm-cosmo@0.8.4) (2024-08-12)
+
+
+### Bug Fixes
+
+* some trigger ([e9d5eaa](https://github.com/AndreasZeissner/cosmo-ops/commit/e9d5eaa2cbb9ee0dc0379aab2f167d9f072c9105))
+* something in the helm charts ([0ee3f3b](https://github.com/AndreasZeissner/cosmo-ops/commit/0ee3f3b68726a5fdd737c7006141533a48f8ca2f))
+
 ## [0.8.3](https://github.com/AndreasZeissner/cosmo-ops/compare/helm-cosmo@0.8.2...helm-cosmo@0.8.3) (2024-08-12)
 
 
