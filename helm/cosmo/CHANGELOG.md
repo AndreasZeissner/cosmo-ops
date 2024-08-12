@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.8.2](https://github.com/AndreasZeissner/cosmo-ops/compare/helm-cosmo@0.8.1...helm-cosmo@0.8.2) (2024-08-12)
+
+
+### Bug Fixes
+
+* controlplane ([411a84b](https://github.com/AndreasZeissner/cosmo-ops/commit/411a84baf1d09957e55e29264c365bb76db58f2b))
+* me ([5542c30](https://github.com/AndreasZeissner/cosmo-ops/commit/5542c30c5bf2a1465ec90deee8d277756d9197b2))
+
 ## [0.8.1](https://github.com/AndreasZeissner/cosmo-ops/compare/helm-cosmo@0.8.0...helm-cosmo@0.8.1) (2024-08-12)
 
 
