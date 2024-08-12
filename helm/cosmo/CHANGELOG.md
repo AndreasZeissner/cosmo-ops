@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.8.10](https://github.com/AndreasZeissner/cosmo-ops/compare/helm-cosmo@0.8.9...helm-cosmo@0.8.10) (2024-08-12)
+
+
+### Bug Fixes
+
+* test ([1c56d04](https://github.com/AndreasZeissner/cosmo-ops/commit/1c56d04664a9d92c7873acc7fadddb26bbb53a9d))
+* test ([d410588](https://github.com/AndreasZeissner/cosmo-ops/commit/d410588bf9a22f2d489b398c9ef4d3f7c898e217))
+* test ([9d970ef](https://github.com/AndreasZeissner/cosmo-ops/commit/9d970ef87b3abe5d0038977a3d90920bfacc0374))
+* test ([ae40d7f](https://github.com/AndreasZeissner/cosmo-ops/commit/ae40d7f89f78472ba0969ed862d7045cd061e706))
+* test ([0f3a992](https://github.com/AndreasZeissner/cosmo-ops/commit/0f3a992aadcebb5047f2347e41222531b7f416f7))
+* test ([d411301](https://github.com/AndreasZeissner/cosmo-ops/commit/d41130102ee91da4c748b18ac14e65d064b3d06c))
+* test ([c07b6ed](https://github.com/AndreasZeissner/cosmo-ops/commit/c07b6ed6ba89085ba75fa4f51a63d217a916da42))
+* test ([da5d4b9](https://github.com/AndreasZeissner/cosmo-ops/commit/da5d4b93ebcbded93da236e6b7168d941cc451cc))
+* test ([6f79a87](https://github.com/AndreasZeissner/cosmo-ops/commit/6f79a87984d828e4b1f0837ff47c475de9d9c9b0))
+* test ([8811728](https://github.com/AndreasZeissner/cosmo-ops/commit/88117288413e86288d1213fe9d1fd6146009df79))
+
 ## [0.8.9](https://github.com/AndreasZeissner/cosmo-ops/compare/helm-cosmo@0.8.8...helm-cosmo@0.8.9) (2024-08-12)
 
 
