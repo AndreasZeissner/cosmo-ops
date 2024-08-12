@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.6](https://github.com/AndreasZeissner/cosmo-ops/compare/helm-cosmo@0.8.5...helm-cosmo@0.8.6) (2024-08-12)
+
+
+### Bug Fixes
+
+* foo ([df2a115](https://github.com/AndreasZeissner/cosmo-ops/commit/df2a115b89f71db74cdb57378aa4439b52fa817e))
+
 ## [0.8.5](https://github.com/AndreasZeissner/cosmo-ops/compare/helm-cosmo@0.8.4...helm-cosmo@0.8.5) (2024-08-12)
 
 
