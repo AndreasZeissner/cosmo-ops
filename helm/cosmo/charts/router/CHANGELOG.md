@@ -5,6 +5,7 @@
 
 ### Bug Fixes
 
+* something in the helm charts ([0ee3f3b](https://github.com/AndreasZeissner/cosmo-ops/commit/0ee3f3b68726a5fdd737c7006141533a48f8ca2f))
 * sthg ([1d8c9c6](https://github.com/AndreasZeissner/cosmo-ops/commit/1d8c9c6afe1a831f4bd5fbf5a05f1a791a39741a))
 
 ## [0.7.3](https://github.com/AndreasZeissner/cosmo-ops/compare/helm-cosmo-router@0.7.2...helm-cosmo-router@0.7.3) (2024-08-12)
