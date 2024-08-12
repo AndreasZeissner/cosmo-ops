@@ -50,3 +50,5 @@ spec:
           args:
             - "/app/dist/bin/ch-migrate.js"
 {{- end }}
+
+# TEST MEEEE
