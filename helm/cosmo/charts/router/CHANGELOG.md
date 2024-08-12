@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.5](https://github.com/AndreasZeissner/cosmo-ops/compare/helm-cosmo-router@0.7.4...helm-cosmo-router@0.7.5) (2024-08-12)
+
+
+### Bug Fixes
+
+* something ([cc13419](https://github.com/AndreasZeissner/cosmo-ops/commit/cc134196190427bc1a2e907e05bf184a276a3e98))
+
 ## [0.7.4](https://github.com/AndreasZeissner/cosmo-ops/compare/helm-cosmo-router@0.7.3...helm-cosmo-router@0.7.4) (2024-08-12)
 
 
