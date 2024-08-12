@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.8.5](https://github.com/AndreasZeissner/cosmo-ops/compare/helm-cosmo@0.8.4...helm-cosmo@0.8.5) (2024-08-12)
+
+
+### Bug Fixes
+
+* something ([2851948](https://github.com/AndreasZeissner/cosmo-ops/commit/285194851ee62eeec09133debf1f857f2f69cfb1))
+* something ([bf0d652](https://github.com/AndreasZeissner/cosmo-ops/commit/bf0d65280af52fa46c0c7eadbd16ca771734bcb4))
+
 ## [0.8.4](https://github.com/AndreasZeissner/cosmo-ops/compare/helm-cosmo@0.8.3...helm-cosmo@0.8.4) (2024-08-12)
 
 
