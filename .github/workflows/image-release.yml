@@ -32,7 +32,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME: andreaszeissner/cosmo-ops
 
 jobs:
   build-and-push-image:
@@ -52,7 +52,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: |
-            ${{ env.REGISTRY }}/${{ github.repository }}/${{ inputs.name }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ inputs.name }}
           tags: |
             type=ref,event=branch
             type=sha
@@ -94,12 +94,12 @@ jobs:
           context: ${{ inputs.dockerContext }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ github.repository }}/${{ inputs.name }}:buildcache
-          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ github.repository }}/${{ inputs.name }}:buildcache,mode=max
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ inputs.name }}:buildcache
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ inputs.name }}:buildcache,mode=max
           platforms: linux/amd64,linux/arm64
           outputs:
             type=image,name=target,annotation-index.org.opencontainers.image.description=${{ inputs.name }}
-            type=image,name=target,annotation-index.org.opencontainers.image.source=https://github.com/wundergraph/cosmo
+            type=image,name=target,annotation-index.org.opencontainers.image.source=https://github.com/${{ env.IMAGE_NAME }}
             type=image,name=target,annotation-index.org.opencontainers.image.licenses=Apache-2.0
           build-args: |
             VERSION=${{ inputs.tag }}
