@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.18.0](https://github.com/AndreasZeissner/cosmo-ops/compare/helm-cosmo@0.17.0...helm-cosmo@0.18.0) (2024-08-13)
+
+
+### Features
+
+* added some new cool feature ([86e9158](https://github.com/AndreasZeissner/cosmo-ops/commit/86e9158c648feb3700c05f14faa669a9449de9a8))
+* added some new cool feature ([3e2b6ca](https://github.com/AndreasZeissner/cosmo-ops/commit/3e2b6ca991f932f2c09482e17517e19951fec27f))
+
+
+### Bug Fixes
+
+* test ([1ba52d7](https://github.com/AndreasZeissner/cosmo-ops/commit/1ba52d715b2fc7408b01192b4ece46a66c42f7ee))
+* test ([05add0d](https://github.com/AndreasZeissner/cosmo-ops/commit/05add0d6ea4790f8ace7b85932d37a8ccc7ba9bf))
+
+
+### Performance Improvements
+
+* remove usused seed call ([abf7a09](https://github.com/AndreasZeissner/cosmo-ops/commit/abf7a097ca64a2939ba822355d8766333dcc382d))
+* remove usused seed call ([4a161ff](https://github.com/AndreasZeissner/cosmo-ops/commit/4a161ff3d42440eed187dd93f3e4d2a898413e49))
+
 ## [0.17.0](https://github.com/AndreasZeissner/cosmo-ops/compare/helm-cosmo@0.16.0...helm-cosmo@0.17.0) (2024-08-13)
 
 
