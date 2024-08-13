@@ -1,6 +1,6 @@
 ---
 name: Helm Release update Docs
-run-name: helm-release-docs-update
+  # run-name: helm-release-docs-update
 
 on:
   workflow_dispatch:
