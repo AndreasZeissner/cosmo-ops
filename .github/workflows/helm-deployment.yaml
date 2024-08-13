@@ -1,5 +1,8 @@
 name: Helm Deployment
 on:
+  push:
+    branches:
+      - 'release-please--**'
   pull_request:
     paths:
       - "helm/**/*"
