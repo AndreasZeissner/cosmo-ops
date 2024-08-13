@@ -4,10 +4,6 @@ on:
     paths:
       - "helm/**/*"
       - ".github/workflows/helm-ci.yaml"
-      # do not trigger on what usually the release-please bot would do
-      # otherwise this is triggered also on pull requests from the bot
-      - "helm/**/CHANGELOG.md"
-      - "helm/**/Chart.yaml"
 
 concurrency:
   group: ${{github.workflow}}-${{github.head_ref}}
