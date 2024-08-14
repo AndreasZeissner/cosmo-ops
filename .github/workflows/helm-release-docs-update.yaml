@@ -42,6 +42,7 @@ jobs:
         with:
           commit_message: 'chore: update helm docs and prepare release'
           file_pattern: 'helm/**/*.md'
+          token: ${{ secrets.GH_TOKEN_HELM_RELEASES }}
           commit_user_name: hardworker-bot
           commit_user_email: bot@wundergraph.com
           commit_author: hardworker-bot <bot@wundergraph.com>
