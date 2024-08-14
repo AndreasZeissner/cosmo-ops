@@ -1,8 +1,5 @@
 name: Helm CI
 on:
-  push:
-    branches:
-      - 'release-please--**'
   pull_request:
     paths:
       - "helm/**/*"
