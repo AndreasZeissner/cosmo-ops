@@ -26,8 +26,7 @@ jobs:
       - name: checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
-          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          token: ${{ secrets.GH_TOKEN_HELM_RELEASES }}
 
       - uses: ./.github/actions/go
 
