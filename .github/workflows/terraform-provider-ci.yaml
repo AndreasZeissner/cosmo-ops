@@ -105,8 +105,8 @@ jobs:
         run: make e2e-comso-apply
         working-directory: ./terraform-provider
 
-      - name: Run e2e-comso-destroy
-        run: make e2e-comso-destroy
+      - name: Run e2e-cosmo-destroy
+        run: make e2e-cosmo-destroy
         working-directory: ./terraform-provider
 
       - name: Build
