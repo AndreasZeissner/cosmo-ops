@@ -82,7 +82,7 @@ jobs:
       - uses: hoverkraft-tech/compose-action@v2.0.1
         with:
           compose-file: "docker-compose.full.yml "
-          up-flags: "--build --remove-orphans --detach"
+          up-flags: "--remove-orphans --detach"
           compose-flags: "--profile default"
 
       - name: Execute tests in the running services
@@ -91,6 +91,22 @@ jobs:
 
       - name: Run tests
         run: make testacc
+        working-directory: ./terraform-provider
+
+      - name: Run e2e-cd-apply
+        run: make e2e-cd-apply
+        working-directory: ./terraform-provider
+
+      - name: Run e2e-cd-destroy
+        run: make e2e-cd-destroy
+        working-directory: ./terraform-provider
+
+      - name: Run e2e-comso-apply
+        run: make e2e-comso-apply
+        working-directory: ./terraform-provider
+
+      - name: Run e2e-comso-destroy
+        run: make e2e-comso-destroy
         working-directory: ./terraform-provider
 
       - name: Build
