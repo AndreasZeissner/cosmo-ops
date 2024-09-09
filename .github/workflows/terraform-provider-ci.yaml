@@ -1,6 +1,8 @@
 name: Terraform Provider CI
 on:
   push:
+    branches:
+      - main
     paths:
       - "terraform-provider/**/*"
       - ".github/workflows/terraform-provider-ci.yaml"
@@ -15,6 +17,8 @@ concurrency:
 
 env:
   CI: true
+  COSMO_API_KEY: cosmo_669b576aaadc10ee1ae81d9193425705
+  COSMO_API_URL: http://localhost:3001
 
 jobs:
   build_test:
@@ -74,6 +78,16 @@ jobs:
       - name: Install dependencies
         run: go mod download
         working-directory: ./terraform-provider
+
+      - uses: hoverkraft-tech/compose-action@v2.0.1
+        with:
+          compose-file: "docker-compose.full.yml "
+          up-flags: "--build --remove-orphans --detach"
+          compose-flags: "--profile default"
+
+      - name: Execute tests in the running services
+        run: |
+          ./scripts/setup-fulldemo.sh
 
       - name: Run tests
         run: make testacc
