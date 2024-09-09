@@ -6,13 +6,15 @@ import (
 	"crypto/x509"
 	"errors"
 	"fmt"
-	"github.com/wundergraph/cosmo/router/pkg/watcher"
 	"net"
 	"net/http"
 	"net/url"
 	"os"
 	"sync"
 	"time"
+
+	"connectrpc.com/connect"
+	"github.com/wundergraph/cosmo/router/pkg/watcher"
 
 	"github.com/wundergraph/cosmo/router/internal/persistedoperation"
 	"github.com/wundergraph/cosmo/router/internal/persistedoperation/cdn"
@@ -22,15 +24,12 @@ import (
 	configCDNProvider "github.com/wundergraph/cosmo/router/pkg/routerconfig/cdn"
 	configs3Provider "github.com/wundergraph/cosmo/router/pkg/routerconfig/s3"
 
+	"github.com/nats-io/nuid"
+	"github.com/redis/go-redis/v9"
 	"github.com/wundergraph/cosmo/router/internal/docker"
 	"github.com/wundergraph/cosmo/router/internal/graphiql"
 	"go.uber.org/atomic"
-	brotli "go.withmatt.com/connect-brotli"
 
-	"github.com/nats-io/nuid"
-	"github.com/redis/go-redis/v9"
-
-	"connectrpc.com/connect"
 	"github.com/mitchellh/mapstructure"
 	"github.com/wundergraph/cosmo/router/gen/proto/wg/cosmo/graphqlmetrics/v1/graphqlmetricsv1connect"
 	nodev1 "github.com/wundergraph/cosmo/router/gen/proto/wg/cosmo/node/v1"
@@ -83,6 +82,7 @@ type (
 		modules           []Module
 		WebsocketStats    WebSocketsStatistics
 		playgroundHandler func(http.Handler) http.Handler
+		proxy             ProxyFunc
 	}
 
 	SubgraphTransportOptions struct {
@@ -139,7 +139,7 @@ type (
 		tracerProvider            *sdktrace.TracerProvider
 		otlpMeterProvider         *sdkmetric.MeterProvider
 		promMeterProvider         *sdkmetric.MeterProvider
-		gqlMetricsExporter        graphqlmetrics.SchemaUsageExporter
+		gqlMetricsExporter        *graphqlmetrics.Exporter
 		corsOptions               *cors.Config
 		setConfigVersionHeader    bool
 		routerGracePeriod         time.Duration
@@ -472,10 +472,10 @@ func NewRouter(opts ...Option) (*Router, error) {
 	}
 
 	for _, source := range r.eventsConfig.Providers.Nats {
-		r.logger.Info("Nats Event source enabled", zap.String("providerID", source.ID), zap.String("url", source.URL))
+		r.logger.Info("Nats Event source enabled", zap.String("provider_id", source.ID), zap.String("url", source.URL))
 	}
 	for _, source := range r.eventsConfig.Providers.Kafka {
-		r.logger.Info("Kafka Event source enabled", zap.String("providerID", source.ID), zap.Strings("brokers", source.Brokers))
+		r.logger.Info("Kafka Event source enabled", zap.String("provider_id", source.ID), zap.Strings("brokers", source.Brokers))
 	}
 
 	return r, nil
@@ -483,7 +483,7 @@ func NewRouter(opts ...Option) (*Router, error) {
 
 // newGraphServer creates a new server.
 func (r *Router) newServer(ctx context.Context, cfg *nodev1.RouterConfig) error {
-	server, err := newGraphServer(ctx, r, cfg)
+	server, err := newGraphServer(ctx, r, cfg, r.proxy)
 	if err != nil {
 		r.logger.Error("Failed to create graph server. Keeping the old server", zap.Error(err))
 		return err
@@ -718,15 +718,11 @@ func (r *Router) bootstrap(ctx context.Context) error {
 
 	}
 
-	r.gqlMetricsExporter = graphqlmetrics.NewNoopExporter()
-
 	if r.graphqlMetricsConfig.Enabled {
 		client := graphqlmetricsv1connect.NewGraphQLMetricsServiceClient(
 			http.DefaultClient,
 			r.graphqlMetricsConfig.CollectorEndpoint,
-			brotli.WithCompression(),
-			// Compress requests with Brotli.
-			connect.WithSendCompression(brotli.Name),
+			connect.WithSendGzip(),
 		)
 		ge, err := graphqlmetrics.NewExporter(
 			r.logger,
@@ -828,7 +824,7 @@ func (r *Router) buildClients() error {
 		pClient = c
 
 		r.logger.Info("Use CDN as storage provider for persisted operations",
-			zap.String("providerID", provider.ID),
+			zap.String("provider_id", provider.ID),
 		)
 	} else if provider, ok := s3Providers[r.persistedOperationsConfig.Storage.ProviderID]; ok {
 
@@ -847,7 +843,7 @@ func (r *Router) buildClients() error {
 		pClient = c
 
 		r.logger.Info("Use S3 as storage provider for persisted operations",
-			zap.String("providerID", provider.ID),
+			zap.String("provider_id", provider.ID),
 		)
 	} else if r.graphApiToken != "" {
 		if r.persistedOperationsConfig.Storage.ProviderID != "" {
@@ -914,7 +910,7 @@ func (r *Router) buildClients() error {
 			rClient = c
 
 			r.logger.Info("Polling for execution config updates from CDN in the background",
-				zap.String("providerID", provider.ID),
+				zap.String("provider_id", provider.ID),
 				zap.String("interval", r.routerConfigPollerConfig.PollInterval.String()),
 			)
 		} else if provider, ok := s3Providers[r.routerConfigPollerConfig.Storage.ProviderID]; ok {
@@ -933,7 +929,7 @@ func (r *Router) buildClients() error {
 			rClient = c
 
 			r.logger.Info("Polling for execution config updates from S3 storage in the background",
-				zap.String("providerID", provider.ID),
+				zap.String("provider_id", provider.ID),
 				zap.String("interval", r.routerConfigPollerConfig.PollInterval.String()),
 			)
 		} else {
@@ -1252,6 +1248,14 @@ func (r *Router) Shutdown(ctx context.Context) (err error) {
 		r.persistedOperationClient.Close()
 	}
 
+	if r.accessController != nil {
+		for _, authenticator := range r.accessController.authenticators {
+			if authenticator != nil {
+				authenticator.Close()
+			}
+		}
+	}
+
 	wg.Wait()
 
 	return err
@@ -1407,6 +1411,12 @@ func WithHealthCheckPath(path string) Option {
 func WithHealthChecks(healthChecks health.Checker) Option {
 	return func(r *Router) {
 		r.healthcheck = healthChecks
+	}
+}
+
+func WithProxy(proxy ProxyFunc) Option {
+	return func(r *Router) {
+		r.proxy = proxy
 	}
 }
 
@@ -1632,7 +1642,9 @@ func WithStorageProviders(cfg config.StorageProviders) Option {
 	}
 }
 
-func newHTTPTransport(opts *SubgraphTransportOptions) *http.Transport {
+type ProxyFunc func(req *http.Request) (*url.URL, error)
+
+func newHTTPTransport(opts *SubgraphTransportOptions, proxy ProxyFunc) *http.Transport {
 	dialer := &net.Dialer{
 		Timeout:   opts.DialTimeout,
 		KeepAlive: opts.KeepAliveProbeInterval,
@@ -1658,6 +1670,9 @@ func newHTTPTransport(opts *SubgraphTransportOptions) *http.Transport {
 		TLSHandshakeTimeout:   opts.TLSHandshakeTimeout,
 		ResponseHeaderTimeout: opts.ResponseHeaderTimeout,
 		ExpectContinueTimeout: opts.ExpectContinueTimeout,
+		// Will return nil when HTTP(S)_PROXY does not exist or is empty.
+		// This will prevent the transport from handling the proxy when it is not needed.
+		Proxy: proxy,
 	}
 }
 

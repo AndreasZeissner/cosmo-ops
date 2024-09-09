@@ -2,7 +2,6 @@ package core
 
 import (
 	"context"
-	"strconv"
 	"time"
 
 	"github.com/wundergraph/cosmo/router/pkg/otel"
@@ -36,17 +35,14 @@ type OperationMetrics struct {
 	routerConfigVersion  string
 	opContext            *operationContext
 	logger               *zap.Logger
-}
-
-func (m *OperationMetrics) exportSchemaUsageInfo(operationContext *operationContext, statusCode int, hasError bool) {
-	m.routerMetrics.ExportSchemaUsageInfo(operationContext, statusCode, hasError)
+	trackUsageInfo       bool
 }
 
 func (m *OperationMetrics) AddOperationContext(opContext *operationContext) {
 	m.opContext = opContext
 }
 
-func (m *OperationMetrics) Finish(err error, statusCode int, responseSize int) {
+func (m *OperationMetrics) Finish(err error, statusCode int, responseSize int, exportSynchronous bool) {
 	m.inflightMetric()
 
 	ctx := context.Background()
@@ -68,8 +64,8 @@ func (m *OperationMetrics) Finish(err error, statusCode int, responseSize int) {
 	)
 	rm.MeasureResponseSize(ctx, int64(responseSize), m.metricBaseFields...)
 
-	if m.opContext != nil {
-		m.exportSchemaUsageInfo(m.opContext, statusCode, err != nil)
+	if m.trackUsageInfo && m.opContext != nil {
+		m.routerMetrics.ExportSchemaUsageInfo(m.opContext, statusCode, err != nil, exportSynchronous)
 	}
 }
 
@@ -94,6 +90,7 @@ type OperationMetricsOptions struct {
 	RequestContentLength int64
 	RouterMetrics        RouterMetrics
 	Logger               *zap.Logger
+	TrackUsageInfo       bool
 }
 
 // newOperationMetrics creates a new OperationMetrics struct and starts the operation metrics.
@@ -110,29 +107,6 @@ func newOperationMetrics(opts OperationMetricsOptions) *OperationMetrics {
 		routerConfigVersion:  opts.RouterConfigVersion,
 		routerMetrics:        opts.RouterMetrics,
 		logger:               opts.Logger,
+		trackUsageInfo:       opts.TrackUsageInfo,
 	}
-}
-
-// getAttributesFromOperationContext returns the attributes that are common to both metrics and traces.
-func getAttributesFromOperationContext(operationContext *operationContext) []attribute.KeyValue {
-	if operationContext == nil {
-		return nil
-	}
-
-	var baseMetricAttributeValues []attribute.KeyValue
-
-	// Fields that are always present in the metrics and traces
-	baseMetricAttributeValues = append(baseMetricAttributeValues, otel.WgClientName.String(operationContext.clientInfo.Name))
-	baseMetricAttributeValues = append(baseMetricAttributeValues, otel.WgClientVersion.String(operationContext.clientInfo.Version))
-	baseMetricAttributeValues = append(baseMetricAttributeValues, otel.WgOperationName.String(operationContext.Name()))
-	baseMetricAttributeValues = append(baseMetricAttributeValues, otel.WgOperationType.String(operationContext.Type()))
-	baseMetricAttributeValues = append(baseMetricAttributeValues, otel.WgOperationProtocol.String(operationContext.Protocol().String()))
-	baseMetricAttributeValues = append(baseMetricAttributeValues, otel.WgOperationHash.String(strconv.FormatUint(operationContext.Hash(), 10)))
-
-	// Common Field that will be present in both metrics and traces if not empty
-	if operationContext.PersistedID() != "" {
-		baseMetricAttributeValues = append(baseMetricAttributeValues, otel.WgOperationPersistedID.String(operationContext.PersistedID()))
-	}
-
-	return baseMetricAttributeValues
 }

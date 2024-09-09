@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 
 	"github.com/KimMachineGun/automemlimit/memlimit"
@@ -64,18 +65,32 @@ func NewRouter(params Params, additionalOptions ...core.Option) (*core.Router, e
 			if name == "" {
 				name = fmt.Sprintf("jwks-#%d", i)
 			}
-			opts := authentication.JWKSAuthenticatorOptions{
+			tokenDecoder, _ := authentication.NewJwksTokenDecoder(auth.JWKS.URL, auth.JWKS.RefreshInterval)
+			opts := authentication.HttpHeaderAuthenticatorOptions{
 				Name:                name,
 				URL:                 auth.JWKS.URL,
 				HeaderNames:         auth.JWKS.HeaderNames,
 				HeaderValuePrefixes: auth.JWKS.HeaderValuePrefixes,
-				RefreshInterval:     auth.JWKS.RefreshInterval,
+				TokenDecoder:        tokenDecoder,
 			}
-			authenticator, err := authentication.NewJWKSAuthenticator(opts)
+			authenticator, err := authentication.NewHttpHeaderAuthenticator(opts)
 			if err != nil {
-				logger.Fatal("Could not create JWKS authenticator", zap.Error(err), zap.String("name", name))
+				logger.Fatal("Could not create HttpHeader authenticator", zap.Error(err), zap.String("name", name))
 			}
 			authenticators = append(authenticators, authenticator)
+
+			if cfg.WebSocket.Authentication.FromInitialPayload.Enabled {
+				opts := authentication.WebsocketInitialPayloadAuthenticatorOptions{
+					TokenDecoder:        tokenDecoder,
+					Key:                 cfg.WebSocket.Authentication.FromInitialPayload.Key,
+					HeaderValuePrefixes: auth.JWKS.HeaderValuePrefixes,
+				}
+				authenticator, err = authentication.NewWebsocketInitialPayloadAuthenticator(opts)
+				if err != nil {
+					logger.Fatal("Could not create WebsocketInitialPayload authenticator", zap.Error(err))
+				}
+				authenticators = append(authenticators, authenticator)
+			}
 		}
 	}
 
@@ -156,6 +171,11 @@ func NewRouter(params Params, additionalOptions ...core.Option) (*core.Router, e
 		core.WithRateLimitConfig(&cfg.RateLimit),
 	}
 
+	// HTTP_PROXY, HTTPS_PROXY and NO_PROXY
+	if hasProxyConfigured() {
+		core.WithProxy(http.ProxyFromEnvironment)
+	}
+
 	options = append(options, additionalOptions...)
 
 	if cfg.RouterRegistration && cfg.Graph.Token != "" {
@@ -191,4 +211,11 @@ func NewRouter(params Params, additionalOptions ...core.Option) (*core.Router, e
 	}
 
 	return core.NewRouter(options...)
+}
+
+func hasProxyConfigured() bool {
+	_, httpProxy := os.LookupEnv("HTTP_PROXY")
+	_, httpsProxy := os.LookupEnv("HTTPS_PROXY")
+	_, noProxy := os.LookupEnv("NO_PROXY")
+	return httpProxy || httpsProxy || noProxy
 }

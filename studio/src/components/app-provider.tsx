@@ -10,11 +10,14 @@ import {
 import { useRouter } from "next/router";
 import { ReactNode, createContext, useEffect, useState } from "react";
 import { useCookieOrganization } from "@/hooks/use-cookie-organization";
-
-export const UserContext = createContext<User | undefined>(undefined);
+import { setUser as setSentryUser } from "@sentry/nextjs";
 
 const queryClient = new QueryClient();
 const sessionQueryClient = new QueryClient();
+
+export const UserContext = createContext<User | undefined>(undefined);
+export const SessionClientContext =
+  createContext<QueryClient>(sessionQueryClient);
 
 const publicPaths = ["/login", "/signup"];
 
@@ -113,6 +116,16 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   // as well as being able to access the cookie on the server.
   const [cookieOrgSlug, setOrgSlugCookie] = useCookieOrganization();
 
+  // On initial load or page reload, the transport is set and available already.
+  // So only when the transport changes again, we need to reset queries.
+  // URL slug changes -> update cookie -> update verified slug -> changes transport -> updates reset counter -> resets queries
+  const [verifiedOrganizationSlug, setVerifiedOrganizationSlug] =
+    useState<string>();
+  const [transport, setTransport] = useState<Transport>();
+  const [queryResetCounter, setQueryResetCounter] = useState(-1);
+
+  const [user, setUser] = useState<User>();
+
   useEffect(() => {
     if (!router.isReady) return;
     if (currentOrgSlug && typeof currentOrgSlug === "string") {
@@ -134,11 +147,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     },
     sessionQueryClient,
   );
-
-  const [user, setUser] = useState<User>();
-  const [transport, setTransport] = useState<Transport>();
-  const [verifiedOrganizationSlug, setVerifiedOrganizationSlug] =
-    useState<string>();
 
   useEffect(() => {
     if (isFetching || !router.isReady) return;
@@ -165,6 +173,17 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         organizations: data.organizations,
         invitations: data.invitations,
       });
+
+      if (process.env.NEXT_PUBLIC_SENTRY_ENABLED) {
+        setSentryUser({
+          id: data.id,
+          email: data.email,
+          organization: organization.name,
+          organizationId: organization.id,
+          organizationSlug: organization.slug,
+          plan: organization.plan,
+        });
+      }
 
       // Identify call for koala script
       identifyKoala({
@@ -219,17 +238,38 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }, [verifiedOrganizationSlug]);
 
   useEffect(() => {
-    queryClient.resetQueries();
+    if (!transport) {
+      return;
+    }
+    setQueryResetCounter((prev) => prev + 1);
   }, [transport]);
 
+  useEffect(() => {
+    if (!queryResetCounter) {
+      return;
+    }
+
+    queryClient.resetQueries();
+  }, [queryResetCounter]);
+
   if (!transport) {
-    return <UserContext.Provider value={user}>{children}</UserContext.Provider>;
+    return (
+      <UserContext.Provider value={user}>
+        <SessionClientContext.Provider value={sessionQueryClient}>
+          {children}
+        </SessionClientContext.Provider>
+      </UserContext.Provider>
+    );
   }
 
   return (
     <TransportProvider transport={transport}>
       <QueryClientProvider client={queryClient}>
-        <UserContext.Provider value={user}>{children}</UserContext.Provider>
+        <UserContext.Provider value={user}>
+          <SessionClientContext.Provider value={sessionQueryClient}>
+            {children}
+          </SessionClientContext.Provider>
+        </UserContext.Provider>
       </QueryClientProvider>
     </TransportProvider>
   );

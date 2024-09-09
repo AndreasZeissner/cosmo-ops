@@ -4,6 +4,7 @@ import { ServiceImpl } from '@connectrpc/connect';
 import { EnumStatusCode } from '@wundergraph/cosmo-connect/dist/common/common_pb';
 import { OrganizationEventName, PlatformEventName } from '@wundergraph/cosmo-connect/dist/notifications/events_pb';
 import { PlatformService } from '@wundergraph/cosmo-connect/dist/platform/v1/platform_connect';
+import { validate as validateUUID } from 'uuid';
 import {
   AcceptOrDeclineInvitationResponse,
   AddReadmeResponse,
@@ -4423,6 +4424,7 @@ export default function (opts: RouterOptions): Partial<ServiceImpl<typeof Platfo
 
         const featureFlagRepo = new FeatureFlagRepository(logger, opts.db, authContext.organizationId);
         const namespaceRepo = new NamespaceRepository(opts.db, authContext.organizationId);
+        const auditLogRepo = new AuditLogRepository(opts.db);
         const orgWebhooks = new OrganizationWebhookService(
           opts.db,
           authContext.organizationId,
@@ -4535,6 +4537,19 @@ export default function (opts: RouterOptions): Partial<ServiceImpl<typeof Platfo
             authContext.userId,
           );
         }
+
+        await auditLogRepo.addAuditLog({
+          organizationId: authContext.organizationId,
+          auditAction: req.enabled ? 'feature_flag.enabled' : 'feature_flag.disabled',
+          action: req.enabled ? 'enabled' : 'disabled',
+          actorId: authContext.userId,
+          auditableType: 'feature_flag',
+          auditableDisplayName: featureFlag.name,
+          actorDisplayName: authContext.userDisplayName,
+          actorType: authContext.auth === 'api_key' ? 'api_key' : 'user',
+          targetNamespaceId: featureFlag.namespaceId,
+          targetNamespaceDisplayName: featureFlag.namespace,
+        });
 
         if (compositionErrors.length > 0) {
           return {
@@ -6997,7 +7012,7 @@ export default function (opts: RouterOptions): Partial<ServiceImpl<typeof Platfo
           return {
             response: {
               code: EnumStatusCode.ERR,
-              details: 'User does not have the permissions to the role of an organization member.',
+              details: 'User does not have the permissions to update the role of an organization member.',
             },
           };
         }
@@ -7071,6 +7086,13 @@ export default function (opts: RouterOptions): Partial<ServiceImpl<typeof Platfo
           organizationID: authContext.organizationId,
         });
         const highPriorityRole = getHighestPriorityRole({ userRoles });
+        if (highPriorityRole === req.role) {
+          return {
+            response: {
+              code: EnumStatusCode.OK,
+            },
+          };
+        }
 
         const adminChildGroup = await opts.keycloakClient.fetchChildGroup({
           realm: opts.keycloakRealm,
@@ -7093,81 +7115,90 @@ export default function (opts: RouterOptions): Partial<ServiceImpl<typeof Platfo
           childGroupType: 'viewer',
         });
 
-        if (req.role === 'admin') {
-          if (highPriorityRole === 'developer') {
-            await opts.keycloakClient.client.users.delFromGroup({
+        // deleting current roles
+        for (const role of userRoles) {
+          switch (role) {
+            case 'admin': {
+              await opts.keycloakClient.client.users.delFromGroup({
+                id: users[0].id!,
+                realm: opts.keycloakRealm,
+                groupId: adminChildGroup.id!,
+              });
+
+              break;
+            }
+            case 'developer': {
+              await opts.keycloakClient.client.users.delFromGroup({
+                id: users[0].id!,
+                realm: opts.keycloakRealm,
+                groupId: devChildGroup.id!,
+              });
+
+              break;
+            }
+            case 'viewer': {
+              await opts.keycloakClient.client.users.delFromGroup({
+                id: users[0].id!,
+                realm: opts.keycloakRealm,
+                groupId: viewerChildGroup.id!,
+              });
+
+              break;
+            }
+            default: {
+              throw new Error(`Invalid role ${role}`);
+            }
+          }
+        }
+
+        switch (req.role) {
+          case 'admin': {
+            await opts.keycloakClient.client.users.addToGroup({
+              id: users[0].id!,
+              realm: opts.keycloakRealm,
+              groupId: adminChildGroup.id!,
+            });
+            break;
+          }
+          case 'developer': {
+            await opts.keycloakClient.client.users.addToGroup({
               id: users[0].id!,
               realm: opts.keycloakRealm,
               groupId: devChildGroup.id!,
             });
-          } else if (highPriorityRole === 'viewer') {
-            await opts.keycloakClient.client.users.delFromGroup({
+            break;
+          }
+          case 'viewer': {
+            await opts.keycloakClient.client.users.addToGroup({
               id: users[0].id!,
               realm: opts.keycloakRealm,
               groupId: viewerChildGroup.id!,
             });
+            break;
           }
-          await opts.keycloakClient.client.users.addToGroup({
-            id: users[0].id!,
-            realm: opts.keycloakRealm,
-            groupId: adminChildGroup.id!,
-          });
-
-          await orgRepo.updateUserRole({
-            organizationID: authContext.organizationId,
-            orgMemberID: orgMember.orgMemberID,
-            role: 'admin',
-            previousRole: highPriorityRole,
-          });
-
-          await auditLogRepo.addAuditLog({
-            organizationId: authContext.organizationId,
-            auditAction: 'member_role.updated',
-            action: 'updated',
-            actorId: authContext.userId,
-            auditableDisplayName: 'admin',
-            auditableType: 'member_role',
-            actorDisplayName: authContext.userDisplayName,
-            targetId: orgMember.userID,
-            targetDisplayName: orgMember.email,
-            actorType: authContext.auth === 'api_key' ? 'api_key' : 'user',
-          });
-        } else {
-          await opts.keycloakClient.client.users.addToGroup({
-            id: users[0].id!,
-            realm: opts.keycloakRealm,
-            groupId: devChildGroup.id!,
-          });
-
-          await opts.keycloakClient.client.users.delFromGroup({
-            id: users[0].id!,
-            realm: opts.keycloakRealm,
-            groupId: adminChildGroup.id!,
-          });
-
-          const role = 'developer';
-
-          await orgRepo.updateUserRole({
-            organizationID: authContext.organizationId,
-            orgMemberID: orgMember.orgMemberID,
-            role,
-            previousRole: 'admin',
-          });
-
-          await auditLogRepo.addAuditLog({
-            organizationId: authContext.organizationId,
-            auditAction: 'member_role.updated',
-            action: 'updated',
-            actorId: authContext.userId,
-            auditableDisplayName: role,
-            auditableType: 'member_role',
-            actorDisplayName: authContext.userDisplayName,
-            targetId: orgMember.userID,
-            targetType: 'user',
-            targetDisplayName: orgMember.email,
-            actorType: authContext.auth === 'api_key' ? 'api_key' : 'user',
-          });
+          default: {
+            throw new Error(`Invalid role ${req.role}`);
+          }
         }
+
+        await orgRepo.updateUserRole({
+          orgMemberID: orgMember.orgMemberID,
+          role: req.role,
+        });
+
+        await auditLogRepo.addAuditLog({
+          organizationId: authContext.organizationId,
+          auditAction: 'member_role.updated',
+          action: 'updated',
+          actorId: authContext.userId,
+          auditableDisplayName: req.role,
+          auditableType: 'member_role',
+          actorDisplayName: authContext.userDisplayName,
+          targetId: orgMember.userID,
+          targetType: 'user',
+          targetDisplayName: orgMember.email,
+          actorType: authContext.auth === 'api_key' ? 'api_key' : 'user',
+        });
 
         return {
           response: {
@@ -8117,6 +8148,15 @@ export default function (opts: RouterOptions): Partial<ServiceImpl<typeof Platfo
         const authContext = await opts.authenticator.authenticate(ctx.requestHeader);
         logger = enrichLogger(ctx, logger, authContext);
 
+        if (!authContext.hasWriteAccess) {
+          return {
+            response: {
+              code: EnumStatusCode.ERR,
+              details: `The user doesnt have the permissions to perform this operation`,
+            },
+          };
+        }
+
         const namespaceRepo = new NamespaceRepository(opts.db, authContext.organizationId);
         const namespace = await namespaceRepo.byName(req.namespace);
         if (!namespace) {
@@ -8144,6 +8184,15 @@ export default function (opts: RouterOptions): Partial<ServiceImpl<typeof Platfo
       return handleError<PlainMessage<ConfigureNamespaceLintConfigResponse>>(ctx, logger, async () => {
         const authContext = await opts.authenticator.authenticate(ctx.requestHeader);
         logger = enrichLogger(ctx, logger, authContext);
+
+        if (!authContext.hasWriteAccess) {
+          return {
+            response: {
+              code: EnumStatusCode.ERR,
+              details: `The user doesnt have the permissions to perform this operation`,
+            },
+          };
+        }
 
         const schemaLintRepo = new SchemaLintRepository(opts.db);
         const namespaceRepo = new NamespaceRepository(opts.db, authContext.organizationId);
@@ -9468,6 +9517,7 @@ export default function (opts: RouterOptions): Partial<ServiceImpl<typeof Platfo
               details: `Organization not found`,
             },
             organizationName: '',
+            organizationSlug: '',
           };
         }
 
@@ -9476,6 +9526,7 @@ export default function (opts: RouterOptions): Partial<ServiceImpl<typeof Platfo
             code: EnumStatusCode.OK,
           },
           organizationName: organization.name,
+          organizationSlug: organization.slug,
         };
       });
     },
@@ -9995,7 +10046,7 @@ export default function (opts: RouterOptions): Partial<ServiceImpl<typeof Platfo
           let composition: GraphCompositionDTO | undefined;
 
           // Might be empty when starting with a local composed config that has no config version id
-          if (routerDTO.configVersionId) {
+          if (routerDTO.configVersionId && validateUUID(routerDTO.configVersionId)) {
             composition = await graphCompositionRepository.getGraphCompositionBySchemaVersion({
               organizationId: authContext.organizationId,
               schemaVersionId: routerDTO.configVersionId,

@@ -1,5 +1,5 @@
 import http from 'k6/http';
-import { sleep, check } from 'k6';
+import { check } from 'k6';
 
 export const options = {
   stages: [
@@ -8,6 +8,9 @@ export const options = {
     //{ duration: '20s', target: 0 },
   ],
 };
+
+
+// oha http://localhost:3002/graphql -n 100 -z 10s -H 'content-type: application/json' -d '{"query":"  query Bench {\n    employees {\n      details {\n        forename\n      }\n    }\n}","operationName":"Bench"}'
 
 export default function () {
   let query = `

@@ -20,6 +20,7 @@ services:
       - dev
 
   keycloak:
+    image: ghcr.io/wundergraph/cosmo/keycloak:${DC_KEYCLOAK_VERSION:-latest}
     build:
       context: keycloak
       dockerfile: Dockerfile
@@ -101,6 +102,7 @@ services:
       - dev
 
   otelcollector:
+    image: ghcr.io/wundergraph/cosmo/otelcollector:${DC_OTELCOLLECTOR_VERSION:-latest}
     build:
       context: otelcollector
       dockerfile: Dockerfile
@@ -157,14 +159,16 @@ services:
       - dev
 
   cdn:
+    image: ghcr.io/wundergraph/cosmo/cdn:${DC_CDN_VERSION:-latest}
     build:
       context: .
       dockerfile: cdn-server/Dockerfile
     environment:
-      - PORT=11000
-      - AUTH_JWT_SECRET=fkczyomvdprgvtmvkuhvprxuggkbgwld
-      - AUTH_ADMISSION_JWT_SECRET=uXDxJLEvrw4aafPfrf3rRotCoBzRfPEW
-      - S3_STORAGE_URL=http://${MINIO_ROOT_USER:-minio}:${MINIO_ROOT_PASSWORD:-changeme}@minio:9000/cosmo
+      PORT: 11000
+      AUTH_JWT_SECRET: fkczyomvdprgvtmvkuhvprxuggkbgwld
+      AUTH_ADMISSION_JWT_SECRET: uXDxJLEvrw4aafPfrf3rRotCoBzRfPEW
+      S3_STORAGE_URL: ${S3_STORAGE_URL:-http://${MINIO_ROOT_USER:-minio}:${MINIO_ROOT_PASSWORD:-changeme}@minio:9000/cosmo}
+      S3_REGION: ${S3_REGION_CDN:-${S3_REGION:-auto}}
     ports:
       - '11000:11000'
     networks:

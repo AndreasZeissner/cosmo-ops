@@ -52,6 +52,7 @@ type PreHandlerOptions struct {
 	AlwaysIncludeQueryPlan      bool
 	AlwaysSkipLoader            bool
 	QueryPlansEnabled           bool
+	TrackSchemaUsageInfo        bool
 }
 
 type PreHandler struct {
@@ -76,6 +77,7 @@ type PreHandler struct {
 	maxUploadFiles              int
 	maxUploadFileSize           int
 	bodyReadBuffers             *sync.Pool
+	trackSchemaUsageInfo        bool
 }
 
 type httpOperation struct {
@@ -117,6 +119,7 @@ func NewPreHandler(opts *PreHandlerOptions) *PreHandler {
 		alwaysIncludeQueryPlan: opts.AlwaysIncludeQueryPlan,
 		alwaysSkipLoader:       opts.AlwaysSkipLoader,
 		queryPlansEnabled:      opts.QueryPlansEnabled,
+		trackSchemaUsageInfo:   opts.TrackSchemaUsageInfo,
 	}
 }
 
@@ -190,12 +193,11 @@ func (h *PreHandler) Handler(next http.Handler) http.Handler {
 
 		routerSpan.SetAttributes(commonAttributes...)
 
-		if h.flushTelemetryAfterResponse {
-			defer h.flushMetrics(r.Context(), requestLogger)
-		}
-
 		defer func() {
-			metrics.Finish(finalErr, statusCode, writtenBytes)
+			metrics.Finish(finalErr, statusCode, writtenBytes, h.flushTelemetryAfterResponse)
+			if h.flushTelemetryAfterResponse {
+				h.flushMetrics(r.Context(), requestLogger)
+			}
 		}()
 
 		var body []byte
@@ -245,7 +247,7 @@ func (h *PreHandler) Handler(next http.Handler) http.Handler {
 					requestLogger.Error("failed to remove files after multipart request", zap.Error(err))
 				}
 			}()
-		} else {
+		} else if r.Method == http.MethodPost {
 			_, readOperationBodySpan := h.tracer.Start(r.Context(), "HTTP - Read Body",
 				trace.WithSpanKind(trace.SpanKindInternal),
 				trace.WithAttributes(commonAttributes...),
@@ -354,8 +356,7 @@ func (h *PreHandler) Handler(next http.Handler) http.Handler {
 }
 
 func (h *PreHandler) handleOperation(req *http.Request, buf *bytes.Buffer, httpOperation *httpOperation) (*operationContext, error) {
-
-	operationKit, err := h.operationProcessor.NewKit(httpOperation.body, httpOperation.files)
+	operationKit, err := h.operationProcessor.NewKit()
 	if err != nil {
 		return nil, err
 	}
@@ -371,8 +372,25 @@ func (h *PreHandler) handleOperation(req *http.Request, buf *bytes.Buffer, httpO
 
 	}()
 
-	if err := operationKit.UnmarshalOperation(); err != nil {
-		return nil, err
+	// Handle the case when operation information are provided as GET parameters
+	if req.Method == http.MethodGet {
+		if err := operationKit.UnmarshalOperationFromURL(req.URL); err != nil {
+			return nil, &httpGraphqlError{
+				message:    fmt.Sprintf("error parsing request query params: %s", err),
+				statusCode: http.StatusBadRequest,
+			}
+		}
+	} else if req.Method == http.MethodPost {
+		if err := operationKit.UnmarshalOperationFromBody(httpOperation.body); err != nil {
+			return nil, &httpGraphqlError{
+				message:    fmt.Sprintf("error parsing request body: %s", err),
+				statusCode: http.StatusBadRequest,
+			}
+		}
+		// If we have files, we need to set them on the parsed operation
+		if len(httpOperation.files) > 0 {
+			operationKit.parsedOperation.Files = httpOperation.files
+		}
 	}
 
 	var skipParse bool
@@ -410,6 +428,13 @@ func (h *PreHandler) handleOperation(req *http.Request, buf *bytes.Buffer, httpO
 
 	// Give the buffer back to the pool as soon as we're done with it
 	h.releaseBodyReadBuffer(buf)
+
+	if req.Method == http.MethodGet && operationKit.parsedOperation.Type == "mutation" {
+		return nil, &httpGraphqlError{
+			message:    "Mutations can only be sent over HTTP POST",
+			statusCode: http.StatusMethodNotAllowed,
+		}
+	}
 
 	attributes := []attribute.KeyValue{
 		otel.WgOperationName.String(operationKit.parsedOperation.Request.OperationName),
@@ -547,10 +572,11 @@ func (h *PreHandler) handleOperation(req *http.Request, buf *bytes.Buffer, httpO
 	)
 
 	planOptions := PlanOptions{
-		Protocol:         OperationProtocolHTTP,
-		ClientInfo:       httpOperation.clientInfo,
-		TraceOptions:     httpOperation.traceOptions,
-		ExecutionOptions: httpOperation.executionOptions,
+		Protocol:             OperationProtocolHTTP,
+		ClientInfo:           httpOperation.clientInfo,
+		TraceOptions:         httpOperation.traceOptions,
+		ExecutionOptions:     httpOperation.executionOptions,
+		TrackSchemaUsageInfo: h.trackSchemaUsageInfo,
 	}
 
 	opContext, err := h.planner.plan(operationKit.parsedOperation, planOptions)
@@ -581,15 +607,7 @@ func (h *PreHandler) flushMetrics(ctx context.Context, requestLogger *zap.Logger
 
 	now := time.Now()
 
-	var wg sync.WaitGroup
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		if err := h.metrics.GqlMetricsExporter().ForceFlush(ctx); err != nil {
-			requestLogger.Error("Failed to flush schema usage metrics", zap.Error(err))
-		}
-	}()
-
+	wg := &sync.WaitGroup{}
 	wg.Add(1)
 	go func() {
 		defer wg.Done()

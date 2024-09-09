@@ -7,6 +7,9 @@ import (
 	"io"
 	"math/rand"
 	"net/http"
+	"net/http/httptest"
+	"net/http/httputil"
+	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -237,7 +240,7 @@ func TestVariables(t *testing.T) {
 			})
 			require.NoError(t, err)
 			require.Equal(t, http.StatusBadRequest, res.Response.StatusCode)
-			require.Equal(t, `{"errors":[{"message":"variables must be an object"}],"data":null}`, res.Body)
+			require.Equal(t, `{"errors":[{"message":"error parsing request body: variables must be an object"}],"data":null}`, res.Body)
 		})
 
 		t.Run("invalid string", func(t *testing.T) {
@@ -247,7 +250,7 @@ func TestVariables(t *testing.T) {
 			})
 			require.NoError(t, err)
 			require.Equal(t, http.StatusBadRequest, res.Response.StatusCode)
-			require.Equal(t, `{"errors":[{"message":"variables must be an object"}],"data":null}`, res.Body)
+			require.Equal(t, `{"errors":[{"message":"error parsing request body: variables must be an object"}],"data":null}`, res.Body)
 		})
 
 		t.Run("invalid boolean", func(t *testing.T) {
@@ -257,7 +260,7 @@ func TestVariables(t *testing.T) {
 			})
 			require.NoError(t, err)
 			require.Equal(t, http.StatusBadRequest, res.Response.StatusCode)
-			require.Equal(t, `{"errors":[{"message":"variables must be an object"}],"data":null}`, res.Body)
+			require.Equal(t, `{"errors":[{"message":"error parsing request body: variables must be an object"}],"data":null}`, res.Body)
 		})
 
 		t.Run("invalid array", func(t *testing.T) {
@@ -267,7 +270,7 @@ func TestVariables(t *testing.T) {
 			})
 			require.NoError(t, err)
 			require.Equal(t, http.StatusBadRequest, res.Response.StatusCode)
-			require.Equal(t, `{"errors":[{"message":"variables must be an object"}],"data":null}`, res.Body)
+			require.Equal(t, `{"errors":[{"message":"error parsing request body: variables must be an object"}],"data":null}`, res.Body)
 		})
 
 		t.Run("missing", func(t *testing.T) {
@@ -300,6 +303,34 @@ func TestAnonymousQuery(t *testing.T) {
 			Query: `{ employees { id } }`,
 		})
 		require.JSONEq(t, employeesIDData, res.Body)
+	})
+}
+
+func TestProxy(t *testing.T) {
+
+	fakeSubgraph := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{"data":{"employees":[{"id":1234}]}}`))
+	}))
+
+	u, err := url.Parse(fakeSubgraph.URL)
+	require.NoError(t, err)
+
+	proxy := httptest.NewServer(httputil.NewSingleHostReverseProxy(u))
+	require.NoError(t, err)
+
+	testenv.Run(t, &testenv.Config{
+		RouterOptions: []core.Option{
+			core.WithProxy(func(req *http.Request) (*url.URL, error) {
+				return url.Parse(proxy.URL)
+			}),
+		},
+	}, func(t *testing.T, xEnv *testenv.Environment) {
+		res := xEnv.MakeGraphQLRequestOK(testenv.GraphQLRequest{
+			Query: `{ employees { id } }`,
+		})
+		require.Equal(t, `{"data":{"employees":[{"id":1234}]}}`, res.Body)
 	})
 }
 

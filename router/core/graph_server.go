@@ -89,7 +89,7 @@ type (
 )
 
 // newGraphServer creates a new server instance.
-func newGraphServer(ctx context.Context, r *Router, routerConfig *nodev1.RouterConfig) (*graphServer, error) {
+func newGraphServer(ctx context.Context, r *Router, routerConfig *nodev1.RouterConfig, proxy ProxyFunc) (*graphServer, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	s := &graphServer{
 		context:                 ctx,
@@ -97,7 +97,7 @@ func newGraphServer(ctx context.Context, r *Router, routerConfig *nodev1.RouterC
 		Config:                  &r.Config,
 		websocketStats:          r.WebsocketStats,
 		metricStore:             rmetric.NewNoopMetrics(),
-		executionTransport:      newHTTPTransport(r.subgraphTransportOptions),
+		executionTransport:      newHTTPTransport(r.subgraphTransportOptions, proxy),
 		playgroundHandler:       r.playgroundHandler,
 		baseRouterConfigVersion: routerConfig.GetVersion(),
 		inFlightRequests:        &atomic.Uint64{},
@@ -529,11 +529,11 @@ func (s *graphServer) buildGraphMux(ctx context.Context,
 	}
 
 	ecb := &ExecutorConfigurationBuilder{
-		introspection: s.introspection,
-		baseURL:       s.baseURL,
-		transport:     s.executionTransport,
-		logger:        s.logger,
-		includeInfo:   s.graphqlMetricsConfig.Enabled,
+		introspection:  s.introspection,
+		baseURL:        s.baseURL,
+		transport:      s.executionTransport,
+		logger:         s.logger,
+		trackUsageInfo: s.graphqlMetricsConfig.Enabled,
 		transportOptions: &TransportOptions{
 			RequestTimeout: s.subgraphTransportOptions.RequestTimeout,
 			PreHandlers:    s.preOriginHandlers,
@@ -638,6 +638,7 @@ func (s *graphServer) buildGraphMux(ctx context.Context,
 		AlwaysIncludeQueryPlan:      s.engineExecutionConfiguration.Debug.AlwaysIncludeQueryPlan,
 		AlwaysSkipLoader:            s.engineExecutionConfiguration.Debug.AlwaysSkipLoader,
 		QueryPlansEnabled:           s.Config.queryPlansEnabled,
+		TrackSchemaUsageInfo:        s.graphqlMetricsConfig.Enabled,
 	})
 
 	if s.webSocketConfiguration != nil && s.webSocketConfiguration.Enabled {
@@ -693,7 +694,10 @@ func (s *graphServer) buildGraphMux(ctx context.Context,
 	// Needs to be mounted after the pre-handler to ensure that the request was parsed and authorized
 	httpRouter.Use(s.routerMiddlewares...)
 
+	// GraphQL over POST
 	httpRouter.Post("/", graphqlHandler.ServeHTTP)
+	// GraphQL over GET
+	httpRouter.Get("/", graphqlHandler.ServeHTTP)
 
 	gm.mux = httpRouter
 

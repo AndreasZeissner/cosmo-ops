@@ -4,7 +4,7 @@ import pc from 'picocolors';
 import { EnumStatusCode } from '@wundergraph/cosmo-connect/dist/common/common_pb';
 import Table from 'cli-table3';
 import logSymbols from 'log-symbols';
-import { join } from 'pathe';
+import { resolve } from 'pathe';
 import { BaseCommandOptions } from '../../../../core/types/types.js';
 import { getBaseHeaders } from '../../../../core/config.js';
 import program from '../../../index.js';
@@ -16,6 +16,10 @@ type OutputFile = {
   routingURL: string;
   isComposable: boolean;
   lastUpdatedAt: string;
+  contract?: {
+    sourceFederatedGraphId: string;
+    excludeTags: string[];
+  };
 }[];
 
 export default (opts: BaseCommandOptions) => {
@@ -24,6 +28,8 @@ export default (opts: BaseCommandOptions) => {
   command.option('-n, --namespace [string]', 'Filter to get graphs in this namespace only.');
   command.option('-o, --out [string]', 'Destination file for the json output.');
   command.option('-r, --raw', 'Prints to the console in json format instead of table');
+  command.option('-j, --json', 'Prints to the console in json format instead of table');
+  command.option('--only-contracts', 'Filter to show contracts only');
   command.action(async (options) => {
     const resp = await opts.client.platform.getFederatedGraphs(
       {
@@ -44,13 +50,24 @@ export default (opts: BaseCommandOptions) => {
       program.error(pc.red('Could not fetch the federated graphs.'));
     }
 
-    if (resp.graphs.length === 0) {
-      console.log('No federated graphs found');
+    const filteredGraphs = [];
+    if (options.onlyContracts) {
+      filteredGraphs.push(...resp.graphs.filter((g) => !!g.contract));
+    } else {
+      filteredGraphs.push(...resp.graphs);
+    }
+
+    if (filteredGraphs.length === 0) {
+      if (options.onlyContracts) {
+        console.log('No contracts found');
+      } else {
+        console.log('No federated graphs found');
+      }
       process.exit(0);
     }
 
     if (options.out) {
-      const output = resp.graphs.map(
+      const output = filteredGraphs.map(
         (g) =>
           ({
             name: g.name,
@@ -59,14 +76,19 @@ export default (opts: BaseCommandOptions) => {
             routingURL: g.routingURL,
             isComposable: g.isComposable,
             lastUpdatedAt: g.lastUpdatedAt,
-          }) as OutputFile[number],
+            contract: g.contract,
+          }) satisfies OutputFile[number],
       );
-      await writeFile(join(process.cwd(), options.out), JSON.stringify(output));
+      await writeFile(resolve(options.out), JSON.stringify(output));
       process.exit(0);
     }
 
     if (options.raw) {
-      console.log(JSON.stringify(resp.graphs));
+      console.log(pc.yellow('Please use the --json option. The --raw option is deprecated.'));
+    }
+
+    if (options.raw || options.json) {
+      console.log(JSON.stringify(filteredGraphs));
       process.exit(0);
     }
 
@@ -78,13 +100,14 @@ export default (opts: BaseCommandOptions) => {
         pc.bold(pc.white('ROUTING_URL')),
         pc.bold(pc.white('IS_COMPOSABLE')),
         pc.bold(pc.white('UPDATED_AT')),
+        pc.bold(pc.white('IS_CONTRACT')),
       ],
-      colAligns: ['left', 'left', 'left', 'left', 'center', 'left'],
-      colWidths: [25, 25, 40, 70, 15, 30],
+      colAligns: ['left', 'left', 'left', 'left', 'center', 'left', 'center'],
+      colWidths: [25, 25, 40, 70, 15, 30, 15],
       wordWrap: true,
     });
 
-    for (const graph of resp.graphs) {
+    for (const graph of filteredGraphs) {
       graphsTable.push([
         graph.name,
         graph.namespace,
@@ -92,6 +115,7 @@ export default (opts: BaseCommandOptions) => {
         graph.routingURL,
         graph.isComposable ? logSymbols.success : logSymbols.error,
         graph.lastUpdatedAt,
+        graph.contract ? logSymbols.success : logSymbols.error,
       ]);
     }
     console.log(graphsTable.toString());

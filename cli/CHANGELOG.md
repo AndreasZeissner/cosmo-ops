@@ -4,6 +4,52 @@ Binaries are attached to the github release otherwise all images can be found [h
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.63.1](https://github.com/wundergraph/cosmo/compare/wgc@0.63.0...wgc@0.63.1) (2024-09-05)
+
+**Note:** Version bump only for package wgc
+
+# [0.63.0](https://github.com/wundergraph/cosmo/compare/wgc@0.62.0...wgc@0.63.0) (2024-08-28)
+
+### Features
+
+* enable proxy handling for native fetch and connectrpc calls ([#1124](https://github.com/wundergraph/cosmo/issues/1124)) ([e4edd4e](https://github.com/wundergraph/cosmo/commit/e4edd4e9bdd100ecc6a0bd85acc2cd9a338c6892)) (@AndreasZeissner)
+
+# [0.62.0](https://github.com/wundergraph/cosmo/compare/wgc@0.61.0...wgc@0.62.0) (2024-08-28)
+
+### Features
+
+* option to list only contracts ([#1128](https://github.com/wundergraph/cosmo/issues/1128)) ([199a9ec](https://github.com/wundergraph/cosmo/commit/199a9ec49d912cd7b18519f5874f3004bab057e2)) (@thisisnithin)
+
+# [0.61.0](https://github.com/wundergraph/cosmo/compare/wgc@0.60.3...wgc@0.61.0) (2024-08-22)
+
+### Features
+
+* add wgc feature-flag list command ([#1110](https://github.com/wundergraph/cosmo/issues/1110)) ([3800237](https://github.com/wundergraph/cosmo/commit/38002376e38b235b21a8a66d5ad70eaa15d1325a)) (@JivusAyrus)
+
+## [0.60.3](https://github.com/wundergraph/cosmo/compare/wgc@0.60.2...wgc@0.60.3) (2024-08-20)
+
+### Bug Fixes
+
+* graph fetch base path ([#1102](https://github.com/wundergraph/cosmo/issues/1102)) ([f738745](https://github.com/wundergraph/cosmo/commit/f738745d6319c6db1cb90f1957ec298a01541160)) (@StarpTech)
+
+## [0.60.2](https://github.com/wundergraph/cosmo/compare/wgc@0.60.1...wgc@0.60.2) (2024-08-20)
+
+### Bug Fixes
+
+* correct output path handling for abs paths ([#1101](https://github.com/wundergraph/cosmo/issues/1101)) ([505f32e](https://github.com/wundergraph/cosmo/commit/505f32e44dcd5fe498f8035962f8e27f9cccd6b9)) (@StarpTech)
+
+## [0.60.1](https://github.com/wundergraph/cosmo/compare/wgc@0.60.0...wgc@0.60.1) (2024-08-20)
+
+### Bug Fixes
+
+* use uuid for config version in compose command ([#1097](https://github.com/wundergraph/cosmo/issues/1097)) ([0e1750e](https://github.com/wundergraph/cosmo/commit/0e1750e55a2e71d777f0cfc59d4d819e3b23eb40)) (@thisisnithin)
+
+# [0.60.0](https://github.com/wundergraph/cosmo/compare/wgc@0.59.4...wgc@0.60.0) (2024-08-19)
+
+### Features
+
+* export cli cmds output in json ([#1088](https://github.com/wundergraph/cosmo/issues/1088)) ([32c597c](https://github.com/wundergraph/cosmo/commit/32c597c1bcab88a1d820ea83f978fa811d8e3768)) (@JivusAyrus)
+
 ## [0.59.4](https://github.com/wundergraph/cosmo/compare/wgc@0.59.3...wgc@0.59.4) (2024-08-14)
 
 **Note:** Version bump only for package wgc

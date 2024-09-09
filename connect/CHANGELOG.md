@@ -4,6 +4,18 @@ Binaries are attached to the github release otherwise all images can be found [h
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.81.0](https://github.com/wundergraph/cosmo/compare/@wundergraph/cosmo-connect@0.80.0...@wundergraph/cosmo-connect@0.81.0) (2024-09-05)
+
+### Features
+
+* record changed subgraphs in composition ([#1134](https://github.com/wundergraph/cosmo/issues/1134)) ([f39ca8c](https://github.com/wundergraph/cosmo/commit/f39ca8c4dcd54bb3d9594bc8394ef287a7eb04cd)) (@thisisnithin)
+
+# [0.80.0](https://github.com/wundergraph/cosmo/compare/@wundergraph/cosmo-connect@0.79.1...@wundergraph/cosmo-connect@0.80.0) (2024-08-19)
+
+### Features
+
+* export cli cmds output in json ([#1088](https://github.com/wundergraph/cosmo/issues/1088)) ([32c597c](https://github.com/wundergraph/cosmo/commit/32c597c1bcab88a1d820ea83f978fa811d8e3768)) (@JivusAyrus)
+
 ## [0.79.1](https://github.com/wundergraph/cosmo/compare/@wundergraph/cosmo-connect@0.79.0...@wundergraph/cosmo-connect@0.79.1) (2024-08-14)
 
 **Note:** Version bump only for package @wundergraph/cosmo-connect

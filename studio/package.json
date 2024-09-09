@@ -1,6 +1,6 @@
 {
   "name": "studio",
-  "version": "0.85.2",
+  "version": "0.88.0",
   "private": true,
   "license": "Apache-2.0",
   "description": "WunderGraph Cosmo Studio",
@@ -57,6 +57,7 @@
     "@radix-ui/react-toggle": "^1.0.3",
     "@radix-ui/react-tooltip": "^1.0.6",
     "@saas-ui/use-hotkeys": "^1.0.0",
+    "@sentry/nextjs": "^8",
     "@stripe/stripe-js": "^2.2.1",
     "@t3-oss/env-nextjs": "^0.4.1",
     "@tanstack/react-query": "^5.37.1",
@@ -67,6 +68,7 @@
     "@tiptap/react": "2.1.13",
     "@tiptap/starter-kit": "2.1.13",
     "@wundergraph/cosmo-connect": "workspace:*",
+    "axios": "^1.7.2",
     "bowser": "^2.11.0",
     "canvas-confetti": "^1.6.0",
     "change-case": "^4.1.2",
