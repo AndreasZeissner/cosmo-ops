@@ -35,7 +35,7 @@ runs:
       uses: goreleaser/goreleaser-action@v6.0.0
       with:
         args: release --clean
-        version: ${{ inputs.release-tag }}
+        # version: ${{ inputs.release-tag }}
         workdir: ${{ inputs.working-directory }}
       env:
         GITHUB_TOKEN: ${{ inputs.go-release-token }}
