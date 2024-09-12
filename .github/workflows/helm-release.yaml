@@ -61,4 +61,4 @@ jobs:
           gpg-private-key: ${{ secrets.TERRAFORM_PROVIDER_GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.TERRAFORM_PROVIDER_GPG_PASSPHRASE }}
           go-release-token: ${{ secrets.GITHUB_TOKEN }}
-          release-tag: terraform-provider-cosmo${{ steps.release.outputs['terraform-provider--tag_name'] }}
+          release-tag: ${{ steps.release.outputs['terraform-provider--tag_name'] }}
