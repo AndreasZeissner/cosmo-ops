@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.0](https://github.com/AndreasZeissner/cosmo-ops/compare/terraform-provider-cosmo-v0.1.0...terraform-provider-cosmo@0.2.0) (2024-09-12)
+
+
+### Features
+
+* test ([7ccbd94](https://github.com/AndreasZeissner/cosmo-ops/commit/7ccbd940767ac9a3870576039cfbdb4deb1571ca))
+* test release ([1ff7b72](https://github.com/AndreasZeissner/cosmo-ops/commit/1ff7b72dd1206cbfa3e3c0607c5c79916aa4127e))
+
 ## [0.1.0](https://github.com/AndreasZeissner/cosmo-ops/compare/terraform-provider-cosmo-v0.0.1...terraform-provider-cosmo@0.1.0) (2024-09-12)
 
 
