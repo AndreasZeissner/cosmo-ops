@@ -1,18 +1,21 @@
-package acceptance
+package namespace_test
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/wundergraph/cosmo/terraform-provider-cosmo/internal/acceptance"
 )
 
 func TestAccNamespaceResource(t *testing.T) {
 	rName := "test-namespace"
+	updatedName := "updated-namespace"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,
+		PreCheck:                 func() { acceptance.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acceptance.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccNamespaceResourceConfig(rName),
@@ -23,6 +26,10 @@ func TestAccNamespaceResource(t *testing.T) {
 			{
 				ResourceName: "cosmo_namespace.test",
 				RefreshState: true,
+			},
+			{
+				Config:      testAccNamespaceResourceConfig(updatedName),
+				ExpectError: regexp.MustCompile(`Changing the namespace name requires recreation.`),
 			},
 		},
 	})

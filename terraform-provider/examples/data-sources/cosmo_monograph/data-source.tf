@@ -7,7 +7,6 @@ terraform {
   }
 }
 
-provider "cosmo" {
-  cosmo_api_url = "cosmo_669b576aaadc10ee1ae81d9193425705"
-  cosmo_api_key = "http://localhost:3001"
+data "cosmo_monograph" "example" {
+  name = var.name
 }

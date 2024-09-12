@@ -7,7 +7,7 @@ module "cosmo-federated-graph" {
 
   federated_graph = {
     name        = "dev-federated-graph"
-    service_url = "http://localhost:3000"
+    routing_url = "http://localhost:3000"
   }
   subgraphs = {
     "subgraph-1" = {
@@ -23,3 +23,4 @@ module "cosmo-federated-graph" {
   // set this to false to add the resources to an existing namespace
   create_namespace = true
 }
+

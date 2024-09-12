@@ -14,8 +14,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/wundergraph/cosmo/terraform-provider-cosmo/internal/client"
-	"github.com/wundergraph/cosmo/terraform-provider-cosmo/internal/services"
 	"github.com/wundergraph/cosmo/terraform-provider-cosmo/internal/utils"
+
+	// service
+	federated_graph "github.com/wundergraph/cosmo/terraform-provider-cosmo/internal/service/federated-graph"
+	monograph "github.com/wundergraph/cosmo/terraform-provider-cosmo/internal/service/monograph"
+	namespace "github.com/wundergraph/cosmo/terraform-provider-cosmo/internal/service/namespace"
+	subgraph "github.com/wundergraph/cosmo/terraform-provider-cosmo/internal/service/subgraph"
 )
 
 // Ensure CosmoProvider satisfies various provider interfaces.
@@ -68,7 +73,11 @@ func (p *CosmoProvider) Configure(ctx context.Context, req provider.ConfigureReq
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	providerConfig, err := client.NewClient()
+
+	cosmoApiKey := data.CosmoApiKey.ValueString()
+	cosmoApiUrl := data.CosmoApiUrl.ValueString()
+
+	providerConfig, err := client.NewClient(cosmoApiKey, cosmoApiUrl)
 
 	if err != nil {
 		utils.AddDiagnosticError(resp, "Error configuring client", err.Error())
@@ -80,17 +89,19 @@ func (p *CosmoProvider) Configure(ctx context.Context, req provider.ConfigureReq
 
 func (p *CosmoProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
-		services.NewFederatedGraphResource, // Updated to new package
-		services.NewNamespaceResource,      // Updated to new package
-		services.NewSubgraphResource,       // Updated to new package
+		federated_graph.NewFederatedGraphResource,
+		namespace.NewNamespaceResource,
+		subgraph.NewSubgraphResource,
+		monograph.NewMonographResource,
 	}
 }
 
 func (p *CosmoProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
-		services.NewFederatedGraphDataSource, // Ensure this is moved to services
-		services.NewSubgraphDataSource,       // Ensure this is moved to services
-		services.NewNamespaceDataSource,      // Ensure this is moved to services
+		federated_graph.NewFederatedGraphDataSource,
+		subgraph.NewSubgraphDataSource,
+		namespace.NewNamespaceDataSource,
+		monograph.NewMonographDataSource,
 	}
 }
 
