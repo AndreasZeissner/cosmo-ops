@@ -55,7 +55,7 @@ jobs:
           make-target: publish-router-chart
 
       - uses: ./.github/actions/terraform-provider-release
-        if: ${{ steps.release.outputs['terraform-provider--tag_name'] }}
+        if: ${{ steps.release.outputs['terraform-provider--release_created'] }}
         with:
           working-directory: ./terraform-provider
           gpg-private-key: ${{ secrets.TERRAFORM_PROVIDER_GPG_PRIVATE_KEY }}

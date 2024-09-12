@@ -22,7 +22,6 @@
     },
     "terraform-provider": {
       "release-type": "go",
-      "skip-github-release": true,
       "package-name": "terraform-provider-cosmo",
       "component": "terraform-provider-cosmo"
     }
