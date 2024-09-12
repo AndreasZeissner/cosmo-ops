@@ -2,8 +2,8 @@ name: Terraform Provider CI
 on:
   pull_request:
     paths:
-      - 'terraform-provider/**/*'
-      - '.github/workflows/terraform-provider-ci.yaml'
+      - 'terraform-provider-cosmo/**/*'
+      - '.github/workflows/terraform-provider-cosmo-ci.yaml'
 
 concurrency:
   group: ${{github.workflow}}-${{github.head_ref}}
@@ -28,13 +28,13 @@ jobs:
           path: |
             ~/.cache/go-build
             ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('terraform-provider/go.sum') }}
+          key: ${{ runner.os }}-go-${{ hashFiles('terraform-provider-cosmo/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
 
       - uses: ./.github/actions/go
         with:
-          cache-dependency-path: terraform-provider/go.sum
+          cache-dependency-path: terraform-provider-cosmo/go.sum
           go-version: 1.21.5
 
       - name: setup Terraform
@@ -44,7 +44,7 @@ jobs:
 
       - uses: ./.github/actions/go-mod-tidy
         with:
-          working-directory: ./terraform-provider
+          working-directory: ./terraform-provider-cosmo
 
       - name: Install tools
         run: make setup-build-tools
@@ -54,11 +54,11 @@ jobs:
 
       - name: Terraform fmt
         run: make fmt
-        working-directory: ./terraform-provider
+        working-directory: ./terraform-provider-cosmo
 
       - name: Terraform docs
         run: make generate
-        working-directory: ./terraform-provider
+        working-directory: ./terraform-provider-cosmo
 
       # TODO: re-enable this see https://github.com/wundergraph/cosmo/actions/runs/10812143372/job/29993116793
       # some files seem to be dirty on github even though the diff is empty locally
@@ -67,7 +67,7 @@ jobs:
 
       - name: Install dependencies
         run: go mod download
-        working-directory: ./terraform-provider
+        working-directory: ./terraform-provider-cosmo
 
       - uses: hoverkraft-tech/compose-action@v2.0.1
         with:
@@ -81,32 +81,32 @@ jobs:
 
       - name: Run tests
         run: make testacc
-        working-directory: ./terraform-provider
+        working-directory: ./terraform-provider-cosmo
 
       - name: Run e2e-cd-apply
         run: make e2e-cd-apply
-        working-directory: ./terraform-provider
+        working-directory: ./terraform-provider-cosmo
 
       - name: Run e2e-cd-destroy
         run: make e2e-cd-destroy
-        working-directory: ./terraform-provider
+        working-directory: ./terraform-provider-cosmo
 
       - name: Run e2e-comso-apply
         run: make e2e-comso-apply
-        working-directory: ./terraform-provider
+        working-directory: ./terraform-provider-cosmo
 
       - name: Run e2e-cosmo-destroy
         run: make e2e-cosmo-destroy
-        working-directory: ./terraform-provider
+        working-directory: ./terraform-provider-cosmo
 
       - name: Build
         run: make build
-        working-directory: ./terraform-provider
+        working-directory: ./terraform-provider-cosmo
 
       - name: Install
         run: make install
-        working-directory: ./terraform-provider
+        working-directory: ./terraform-provider-cosmo
 
       - name: Run e2e
         run: make e2e
-        working-directory: ./terraform-provider
+        working-directory: ./terraform-provider-cosmo

@@ -9,8 +9,8 @@ managed:
       value: github.com/wundergraph/cosmo/terraform-provider-cosmo/gen/proto
 plugins:
   - local: protoc-gen-connect-go
-    out: terraform-provider/gen/proto
+    out: terraform-provider-cosmo/gen/proto
     opt: paths=source_relative
   - local: protoc-gen-go
-    out: terraform-provider/gen/proto
+    out: terraform-provider-cosmo/gen/proto
     opt: paths=source_relative
