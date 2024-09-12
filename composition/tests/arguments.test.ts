@@ -1,4 +1,5 @@
 import {
+  BOOLEAN_SCALAR,
   duplicateArgumentsError,
   federateSubgraphs,
   incompatibleArgumentTypesError,
@@ -8,6 +9,8 @@ import {
   InvalidRequiredInputValueData,
   invalidRequiredInputValueError,
   normalizeSubgraphFromString,
+  NULL,
+  OBJECT,
   parse,
   Subgraph,
   subgraphValidationError,
@@ -19,13 +22,13 @@ import {
   versionOneRouterDefinitions,
   versionTwoRouterDefinitions,
 } from './utils/utils';
-import { FIELD } from '../src/utils/string-constants';
+import { FIELD } from '../src';
 
 // will just add somethig in the composition
 
 describe('Argument federation tests', () => {
   const argumentName = 'input';
-  const prefix = 'argument "input"';
+  const prefix = 'Argument "input"';
   const argumentPath = 'Object.field(input: ...)';
 
   test('that equal arguments merge', () => {
@@ -158,14 +161,14 @@ describe('Argument federation tests', () => {
 
   test('that if arguments have incompatible default values, an error is returned', () => {
     const { errors } = federateSubgraphs([
-      subgraphWithArgumentAndDefaultValue('subgraph-a', 'Boolean', '1'),
-      subgraphWithArgumentAndDefaultValue('subgraph-b', 'Boolean', 'false'),
+      subgraphWithArgumentAndDefaultValue('subgraph-a', BOOLEAN_SCALAR, '1'),
+      subgraphWithArgumentAndDefaultValue('subgraph-b', BOOLEAN_SCALAR, 'false'),
     ]);
     expect(errors).toBeDefined();
     expect(errors).toHaveLength(1);
     expect(errors![0]).toStrictEqual(
       subgraphValidationError('subgraph-a', [
-        incompatibleInputValueDefaultValueTypeError(prefix, argumentPath, 'Boolean', '1'),
+        incompatibleInputValueDefaultValueTypeError(prefix, argumentPath, BOOLEAN_SCALAR, '1'),
       ]),
     );
   });
@@ -260,7 +263,7 @@ describe('Argument federation tests', () => {
           argumentName: 'argThree',
           namedType: 'AnotherObject',
           typeName: 'AnotherObject!',
-          typeString: 'object',
+          typeString: OBJECT,
         },
       ]),
     );
@@ -278,7 +281,7 @@ describe('Argument federation tests', () => {
           four: String = null @tag(name: "object"), 
           one: Int = null @tag(name: "extension"), 
           three: String = null @deprecated(reason: "just because"), 
-          two: Int = null @tag(name: "object") @tag(name: "extension")
+          two: Int = null @tag(name: "extension") @tag(name: "object")
         ): String
         id: ID!
       }
@@ -301,7 +304,7 @@ describe('Argument federation tests', () => {
     expect(errors).toHaveLength(1);
     expect(errors![0]).toStrictEqual(
       subgraphValidationError('subgraph', [
-        incompatibleInputValueDefaultValueTypeError('argument "input"', 'Object.field(input: ...)', 'String!', 'null'),
+        incompatibleInputValueDefaultValueTypeError('Argument "input"', 'Object.field(input: ...)', 'String!', 'null'),
       ]),
     );
   });
@@ -312,12 +315,12 @@ describe('Argument federation tests', () => {
     expect(errors).toHaveLength(1);
     expect(errors![0]).toStrictEqual(
       subgraphValidationError('subgraph', [
-        incompatibleInputValueDefaultValueTypeError('argument "input"', 'Object.field(input: ...)', 'String', '1'),
+        incompatibleInputValueDefaultValueTypeError('Argument "input"', 'Object.field(input: ...)', 'String', '1'),
       ]),
     );
   });
 
-  test('that the @deperecated directive is persisted on arguments in the federated schema #1.1', () => {
+  test('that the @deprecated directive is persisted on Arguments in the federated schema #1.1', () => {
     const { errors, federationResult } = federateSubgraphs([subgraphG, subgraphH]);
     expect(errors).toBeUndefined();
     expect(schemaToSortedNormalizedString(federationResult!.federatedGraphSchema)).toBe(
@@ -342,7 +345,7 @@ describe('Argument federation tests', () => {
     );
   });
 
-  test('that the @deperecated directive is persisted on arguments in the federated schema #1.2', () => {
+  test('that the @deprecated directive is persisted on Arguments in the federated schema #1.2', () => {
     const { errors, federationResult } = federateSubgraphs([subgraphH, subgraphG]);
     expect(errors).toBeUndefined();
     expect(schemaToSortedNormalizedString(federationResult!.federatedGraphSchema)).toBe(
